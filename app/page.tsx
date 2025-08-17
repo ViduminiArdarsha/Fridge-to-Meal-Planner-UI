@@ -1,103 +1,238 @@
-import Image from "next/image";
+"use client";
+import { useEffect, useState } from "react";
+
+// ---------- Types ----------
+type Item = {
+  item: string;
+  category: string;
+  flavour_tags: string; // semicolon-separated
+  days_left: number;
+  expiry_limit: number;
+};
+
+type Pair = { a: string; b: string; weight: number };
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  // UI state
+  const [items, setItems] = useState<Item[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [pairs, setPairs] = useState<Pair[]>([]);
+  const [recipes, setRecipes] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  // Add-item form state
+  const [form, setForm] = useState<Item>({
+    item: "",
+    category: "Protein",
+    flavour_tags: "",
+    days_left: 3,
+    expiry_limit: 30,
+  });
+
+  // Load CSV rows on mount
+  useEffect(() => {
+    (async () => {
+      const res = await fetch("/api/items");
+      const data = await res.json();
+      setItems(data.items || []);
+    })();
+  }, []);
+
+  // Append a row to CSV
+  async function addItem() {
+    setError(null);
+    if (!form.item.trim()) return setError("Item name is required.");
+    const res = await fetch("/api/items", {
+      method: "POST",
+      body: JSON.stringify(form),
+      headers: { "Content-Type": "application/json" },
+    });
+    const data = await res.json();
+    if (!res.ok) return setError(data.error || "Failed to add item");
+    setItems(data.items); // refreshed rows from CSV
+    setForm({ ...form, item: "", flavour_tags: "" }); // reset name/tags
+  }
+
+  // Run Python, capture stdout, parse pairs + recipes
+  async function computeRecipes() {
+    setLoading(true);
+    setError(null);
+    const res = await fetch("/api/run", { method: "POST" });
+    const data = await res.json();
+    setLoading(false);
+    if (!res.ok) return setError(data.error || "Python run failed.");
+    setPairs(data.pairs || []);
+    setRecipes(data.recipes || [data.raw || ""]);
+  }
+
+  return (
+    <main className="min-h-screen bg-slate-50 text-slate-900">
+      {/* Header */}
+      <header className="sticky top-0 z-10 bg-white border-b px-6 py-4 flex items-center justify-between">
+        <h1 className="text-xl font-semibold">
+          Fridge-to-Meal Planner · Demo UI
+        </h1>
+        <div className="flex gap-2">
+          <button
+            onClick={computeRecipes}
+            className="px-3 py-1.5 rounded-xl bg-slate-900 text-white text-sm"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            {loading ? "Running..." : "Compute Pairs & Recipes"}
+          </button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      </header>
+
+      <div className="grid grid-cols-12 gap-4 p-4">
+        {/* Left: Inventory + Add Item */}
+        <section className="col-span-12 lg:col-span-7 space-y-4">
+          <div className="bg-white rounded-2xl shadow p-4">
+            <h2 className="text-lg font-semibold mb-3">Inventory (from CSV)</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left border-b">
+                    <th className="py-2 pr-4">Item</th>
+                    <th className="py-2 pr-4">Category</th>
+                    <th className="py-2 pr-4">Flavour Tags</th>
+                    <th className="py-2 pr-4">Days Left</th>
+                    <th className="py-2 pr-4">Expiry Limit</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((r, i) => (
+                    <tr key={i} className="border-b last:border-none">
+                      <td className="py-2 pr-4">{r.item}</td>
+                      <td className="py-2 pr-4">{r.category}</td>
+                      <td className="py-2 pr-4 text-slate-600">
+                        {r.flavour_tags}
+                      </td>
+                      <td className="py-2 pr-4">{r.days_left}</td>
+                      <td className="py-2 pr-4">{r.expiry_limit}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Add Item */}
+          <div className="bg-white rounded-2xl shadow p-4">
+            <h3 className="font-semibold mb-3">Add Item (append to CSV)</h3>
+            <div className="grid grid-cols-12 gap-2">
+              <input
+                className="col-span-3 px-2 py-1 rounded-lg border"
+                placeholder="Item (e.g., Chicken)"
+                value={form.item}
+                onChange={(e) => setForm({ ...form, item: e.target.value })}
+              />
+              <select
+                className="col-span-2 px-2 py-1 rounded-lg border"
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
+              >
+                <option>Protein</option>
+                <option>Vegetable</option>
+                <option>Dairy</option>
+                <option>Starch</option>
+              </select>
+              <input
+                className="col-span-4 px-2 py-1 rounded-lg border"
+                placeholder="flavour tags; semicolon; separated"
+                value={form.flavour_tags}
+                onChange={(e) =>
+                  setForm({ ...form, flavour_tags: e.target.value })
+                }
+              />
+              <input
+                type="number"
+                className="col-span-1 px-2 py-1 rounded-lg border"
+                value={form.days_left}
+                min={0}
+                onChange={(e) =>
+                  setForm({ ...form, days_left: Number(e.target.value) })
+                }
+                title="days_left"
+              />
+              <input
+                type="number"
+                className="col-span-1 px-2 py-1 rounded-lg border"
+                value={form.expiry_limit}
+                min={1}
+                onChange={(e) =>
+                  setForm({ ...form, expiry_limit: Number(e.target.value) })
+                }
+                title="expiry_limit"
+              />
+              <div className="col-span-12 flex items-center gap-2">
+                <button
+                  onClick={addItem}
+                  className="px-3 py-1.5 rounded-xl bg-slate-900 text-white text-sm"
+                >
+                  Add
+                </button>
+                {error && <span className="text-red-600 text-sm">{error}</span>}
+              </div>
+            </div>
+            <p className="text-xs text-slate-600 mt-2">
+              Note: This app **appends** a CSV line; the Python script will read
+              it next run.
+            </p>
+          </div>
+        </section>
+
+        {/* Right: Pairs + Recipe Cards */}
+        <section className="col-span-12 lg:col-span-5 space-y-4">
+          <div className="bg-white rounded-2xl shadow p-4">
+            <h2 className="text-lg font-semibold mb-2">
+              Top Pairs (from Python)
+            </h2>
+            {pairs.length === 0 ? (
+              <p className="text-sm text-slate-600">
+                Click <b>Compute Pairs & Recipes</b> to run your Python file.
+              </p>
+            ) : (
+              <div className="grid grid-cols-1 gap-2">
+                {pairs.map((p, i) => (
+                  <div
+                    key={i}
+                    className="border rounded-xl p-3 flex items-center justify-between"
+                  >
+                    <div className="font-medium">
+                      {p.a} — {p.b}
+                    </div>
+                    <div className="text-sm font-mono">w={p.weight}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="bg-white rounded-2xl shadow p-4">
+            <h2 className="text-lg font-semibold mb-2">Recipes</h2>
+            {recipes.length === 0 ? (
+              <p className="text-sm text-slate-600">
+                After running, recipe ideas from the Python LLM call appear
+                here.
+              </p>
+            ) : (
+              <div className="grid gap-3">
+                {recipes.map((card, idx) => (
+                  <article key={idx} className="rounded-2xl border p-4">
+                    {/* naive split: first line as title if surrounded by quotes or has asterisks */}
+                    <h3 className="font-semibold mb-1">
+                      {card.split("\n")[0].replace(/^[*\" ]+|[*\" ]+$/g, "") ||
+                        `Recipe ${idx + 1}`}
+                    </h3>
+                    <p className="text-sm whitespace-pre-wrap text-slate-700">
+                      {card}
+                    </p>
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      </div>
+    </main>
   );
 }
