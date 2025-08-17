@@ -1,5 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
+import AddItemBtn from "./components/AddItemBtn";
+import AddItemForm from "./components/AddItemForm";
 
 // ---------- Types ----------
 type Item = {
@@ -38,21 +40,6 @@ export default function Home() {
     })();
   }, []);
 
-  // Append a row to CSV
-  async function addItem() {
-    setError(null);
-    if (!form.item.trim()) return setError("Item name is required.");
-    const res = await fetch("/api/items", {
-      method: "POST",
-      body: JSON.stringify(form),
-      headers: { "Content-Type": "application/json" },
-    });
-    const data = await res.json();
-    if (!res.ok) return setError(data.error || "Failed to add item");
-    setItems(data.items); // refreshed rows from CSV
-    setForm({ ...form, item: "", flavour_tags: "" }); // reset name/tags
-  }
-
   // Run Python, capture stdout, parse pairs + recipes
   async function computeRecipes() {
     setLoading(true);
@@ -86,7 +73,7 @@ export default function Home() {
         {/* Left: Inventory + Add Item */}
         <section className="col-span-12 lg:col-span-7 space-y-4">
           <div className="bg-white rounded-2xl shadow p-4">
-            <h2 className="text-lg font-semibold mb-3">Inventory (from CSV)</h2>
+            <h2 className="text-lg font-semibold mb-3">Inventory</h2>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -116,67 +103,10 @@ export default function Home() {
           </div>
 
           {/* Add Item */}
-          <div className="bg-white rounded-2xl shadow p-4">
-            <h3 className="font-semibold mb-3">Add Item (append to CSV)</h3>
-            <div className="grid grid-cols-12 gap-2">
-              <input
-                className="col-span-3 px-2 py-1 rounded-lg border"
-                placeholder="Item (e.g., Chicken)"
-                value={form.item}
-                onChange={(e) => setForm({ ...form, item: e.target.value })}
-              />
-              <select
-                className="col-span-2 px-2 py-1 rounded-lg border"
-                value={form.category}
-                onChange={(e) => setForm({ ...form, category: e.target.value })}
-              >
-                <option>Protein</option>
-                <option>Vegetable</option>
-                <option>Dairy</option>
-                <option>Starch</option>
-              </select>
-              <input
-                className="col-span-4 px-2 py-1 rounded-lg border"
-                placeholder="flavour tags; semicolon; separated"
-                value={form.flavour_tags}
-                onChange={(e) =>
-                  setForm({ ...form, flavour_tags: e.target.value })
-                }
-              />
-              <input
-                type="number"
-                className="col-span-1 px-2 py-1 rounded-lg border"
-                value={form.days_left}
-                min={0}
-                onChange={(e) =>
-                  setForm({ ...form, days_left: Number(e.target.value) })
-                }
-                title="days_left"
-              />
-              <input
-                type="number"
-                className="col-span-1 px-2 py-1 rounded-lg border"
-                value={form.expiry_limit}
-                min={1}
-                onChange={(e) =>
-                  setForm({ ...form, expiry_limit: Number(e.target.value) })
-                }
-                title="expiry_limit"
-              />
-              <div className="col-span-12 flex items-center gap-2">
-                <button
-                  onClick={addItem}
-                  className="px-3 py-1.5 rounded-xl bg-slate-900 text-white text-sm"
-                >
-                  Add
-                </button>
-                {error && <span className="text-red-600 text-sm">{error}</span>}
-              </div>
-            </div>
-            <p className="text-xs text-slate-600 mt-2">
-              Note: This app **appends** a CSV line; the Python script will read
-              it next run.
-            </p>
+
+          <div className="col-span-12 flex items-center gap-2">
+            <AddItemForm />
+            {error && <span className="text-red-600 text-sm">{error}</span>}
           </div>
         </section>
 
