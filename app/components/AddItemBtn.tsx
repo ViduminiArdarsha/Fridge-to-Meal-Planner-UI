@@ -1,48 +1,64 @@
 import { Button } from '@radix-ui/themes';
-import React, { useState } from 'react'
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';   // ⬅️ add this
 
-type Item = {
+
+export type Item = {
   item: string;
   category: string;
-  flavour_tags: string; // semicolon-separated
+  flavour_tags: string;
   days_left: number;
   expiry_limit: number;
 };
 
-const AddItemBtn = () => {
+type Props = {
+  form: Item;
+  setForm: React.Dispatch<React.SetStateAction<Item>>;
+  setItems: React.Dispatch<React.SetStateAction<Item[]>>;
+  setError: React.Dispatch<React.SetStateAction<string | null>>;
+};
 
-   const [items, setItems] = useState<Item[]>([]);
-   const [error, setError] = useState<string | null>(null);
-   const [form, setForm] = useState<Item>({
-       item: "",
-       category: "Protein",
-       flavour_tags: "",
-       days_left: 0,
-       expiry_limit: 0,
-     });
-
-  async function addItem() {
+const AddItemBtn = ({ form, setForm, setItems, setError }: Props) => {
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();   // ⬅️ add this
+  const addItem = async () => {
     setError(null);
-    if (!form.item.trim()) 
-      return setError("Item name is required.");
 
-    const response = await fetch("/api/items", {
-      method: "POST",
-      body: JSON.stringify(form),
-      headers: { "Content-Type": "application/json" },
-    });
-    const data = await response.json();
-    if (!response.ok) 
-      return setError(data.error || "Failed to add item");
-    setItems(data.items); // refreshed rows from CSV
-    setForm({ ...form, item: "", flavour_tags: "" }); // reset name/tags
-  }
+    // simple validation
+    if (!form.item.trim()) {
+      return setError("Item name is required.");
+    }
+
+    try {
+      setLoading(true);
+      const res = await fetch("/api/items", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        return setError(data.error || "Failed to add item");
+      }
+
+      // refresh parent list
+      setItems(data.items ?? []);
+      // reset only the fields user usually retypes
+      setForm((f) => ({ ...f, item: "", flavour_tags: "" }));
+        router.refresh(); 
+    } catch {
+      setError("Network error. Try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <Button onClick={addItem} color='cyan'>
-      Add Item
+    <Button onClick={addItem} color="cyan" disabled={loading}>
+      {loading ? "Adding…" : "Add Item"}
     </Button>
-  )
-}
+  );
+};
 
-export default AddItemBtn
+export default AddItemBtn;

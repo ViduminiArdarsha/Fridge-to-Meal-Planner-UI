@@ -1,20 +1,21 @@
-import React from "react";
-
-import { useState } from "react";
-import AddItemBtn from "./AddItemBtn";
+import React, { useState } from "react";
+import AddItemBtn, { Item } from "./AddItemBtn";
 
 const AddItemForm = () => {
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<Item>({
     item: "",
     category: "Protein",
     flavour_tags: "",
     days_left: 0,
     expiry_limit: 1,
   });
+  const [items, setItems] = useState<Item[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   return (
     <div className="bg-white rounded-2xl shadow p-4">
-      <h3 className="font-semibold mb-3">Add Item </h3>
+      <h3 className="font-semibold mb-3">Add Item</h3>
+
       <div className="grid grid-cols-12 gap-2">
         <input
           className="col-span-3 px-2 py-1 rounded-lg border"
@@ -43,9 +44,7 @@ const AddItemForm = () => {
           className="col-span-1 px-2 py-1 rounded-lg border"
           value={form.days_left}
           min={0}
-          onChange={(e) =>
-            setForm({ ...form, days_left: Number(e.target.value) })
-          }
+          onChange={(e) => setForm({ ...form, days_left: Number(e.target.value) })}
           title="days_left"
         />
         <input
@@ -53,14 +52,20 @@ const AddItemForm = () => {
           className="col-span-1 px-2 py-1 rounded-lg border"
           value={form.expiry_limit}
           min={1}
-          onChange={(e) =>
-            setForm({ ...form, expiry_limit: Number(e.target.value) })
-          }
+          onChange={(e) => setForm({ ...form, expiry_limit: Number(e.target.value) })}
           title="expiry_limit"
         />
       </div>
+
+      {error && <p className="text-red-600 mt-2">{error}</p>}
+
       <div className="mt-3">
-        <AddItemBtn />
+        <AddItemBtn
+          form={form}
+          setForm={setForm}
+          setItems={setItems}
+          setError={setError}
+        />
       </div>
     </div>
   );

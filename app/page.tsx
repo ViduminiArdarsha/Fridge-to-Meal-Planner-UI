@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-import AddItemBtn from "./components/AddItemBtn";
 import AddItemForm from "./components/AddItemForm";
 
 // ---------- Types ----------
@@ -34,7 +33,7 @@ export default function Home() {
   // Load CSV rows on mount
   useEffect(() => {
     (async () => {
-      const res = await fetch("/api/items");
+      const res = await fetch("/api/items",{ cache: 'no-store' });
       const data = await res.json();
       setItems(data.items || []);
     })();
@@ -146,19 +145,51 @@ export default function Home() {
               </p>
             ) : (
               <div className="grid gap-3">
-                {recipes.map((card, idx) => (
-                  <article key={idx} className="rounded-2xl border p-4">
-                    {/* naive split: first line as title if surrounded by quotes or has asterisks */}
-                    <h3 className="font-semibold mb-1">
-                      {card.split("\n")[0].replace(/^[*\" ]+|[*\" ]+$/g, "") ||
-                        `Recipe ${idx + 1}`}
-                    </h3>
-                    <p className="text-sm whitespace-pre-wrap text-slate-700">
-                      {card}
-                    </p>
-                  </article>
-                ))}
-              </div>
+  {(() => {
+    // 1) filter out unwanted cards
+    const filtered = recipes.filter((block) => {
+      const first = block.trim().split("\n")[0];
+      if (/^Top-3 candidate pairs/i.test(first)) return false;
+      if (first === "---") return false;
+      return true;
+    });
+
+    // 2) group blocks by '---' delimiter from the ORIGINAL array
+    const groups: string[][] = [];
+    let cur: string[] = [];
+    for (const block of recipes) {
+      const head = block.trim().split("\n")[0];
+      if (/^Top-3 candidate pairs/i.test(head)) continue; // skip
+      if (head === "---") {
+        if (cur.length) groups.push(cur), (cur = []);
+        continue;
+      }
+      cur.push(block.trim());
+    }
+    if (cur.length) groups.push(cur);
+
+    // 3) render one card per group, joining blocks
+    return groups.map((group, idx) => {
+      const title =
+        group[0]?.split("\n")[0].replace(/^[*"\s]+|[*"\s]+$/g, "") ||
+        `Recipe ${idx + 1}`;
+
+      // join blocks with a blank line; optionally remove duplicated headings
+      const body = group
+        .join("\n\n")
+        .replace(/^(Ingredients: .+)\n\1/m, "$1") // collapse duplicate Ingredients line
+        .replace(/^(Instructions:)\n\1/m, "$1");  // collapse duplicate Instructions line
+
+      return (
+        <article key={idx} className="rounded-2xl border p-4">
+          <h3 className="font-semibold mb-1">{title}</h3>
+          <p className="text-sm whitespace-pre-wrap text-slate-700">{body}</p>
+        </article>
+      );
+    });
+  })()}
+</div>
+
             )}
           </div>
         </section>
