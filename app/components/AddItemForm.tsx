@@ -44,7 +44,9 @@ const AddItemForm = () => {
           className="col-span-1 px-2 py-1 rounded-lg border"
           value={form.days_left}
           min={0}
-          onChange={(e) => setForm({ ...form, days_left: Number(e.target.value) })}
+          onChange={(e) =>
+            setForm({ ...form, days_left: Number(e.target.value) })
+          }
           title="days_left"
         />
         <input
@@ -52,7 +54,9 @@ const AddItemForm = () => {
           className="col-span-1 px-2 py-1 rounded-lg border"
           value={form.expiry_limit}
           min={1}
-          onChange={(e) => setForm({ ...form, expiry_limit: Number(e.target.value) })}
+          onChange={(e) =>
+            setForm({ ...form, expiry_limit: Number(e.target.value) })
+          }
           title="expiry_limit"
         />
       </div>

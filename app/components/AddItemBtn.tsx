@@ -1,7 +1,6 @@
-import { Button } from '@radix-ui/themes';
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';   // ⬅️ add this
-
+import { Button } from "@radix-ui/themes";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation"; // ⬅️ add this
 
 export type Item = {
   item: string;
@@ -20,7 +19,7 @@ type Props = {
 
 const AddItemBtn = ({ form, setForm, setItems, setError }: Props) => {
   const [loading, setLoading] = useState(false);
-  const router = useRouter();   // ⬅️ add this
+  const router = useRouter(); // ⬅️ add this
   const addItem = async () => {
     setError(null);
 
@@ -46,7 +45,7 @@ const AddItemBtn = ({ form, setForm, setItems, setError }: Props) => {
       setItems(data.items ?? []);
       // reset only the fields user usually retypes
       setForm((f) => ({ ...f, item: "", flavour_tags: "" }));
-        router.refresh(); 
+      router.refresh();
     } catch {
       setError("Network error. Try again.");
     } finally {

@@ -33,7 +33,7 @@ export default function Home() {
   // Load CSV rows on mount
   useEffect(() => {
     (async () => {
-      const res = await fetch("/api/items",{ cache: 'no-store' });
+      const res = await fetch("/api/items", { cache: "no-store" });
       const data = await res.json();
       setItems(data.items || []);
     })();
@@ -55,9 +55,7 @@ export default function Home() {
     <main className="min-h-screen bg-slate-50 text-slate-900">
       {/* Header */}
       <header className="sticky top-0 z-10 bg-white border-b px-6 py-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold">
-          Fridge-to-Meal Planner · Demo UI
-        </h1>
+        <h1 className="text-xl font-semibold">Fridge-to-Meal Planner</h1>
         <div className="flex gap-2">
           <button
             onClick={computeRecipes}
@@ -112,9 +110,7 @@ export default function Home() {
         {/* Right: Pairs + Recipe Cards */}
         <section className="col-span-12 lg:col-span-5 space-y-4">
           <div className="bg-white rounded-2xl shadow p-4">
-            <h2 className="text-lg font-semibold mb-2">
-              Top Pairs (from Python)
-            </h2>
+            <h2 className="text-lg font-semibold mb-2">About to Expire...</h2>
             {pairs.length === 0 ? (
               <p className="text-sm text-slate-600">
                 Click <b>Compute Pairs & Recipes</b> to run your Python file.
@@ -145,51 +141,54 @@ export default function Home() {
               </p>
             ) : (
               <div className="grid gap-3">
-  {(() => {
-    // 1) filter out unwanted cards
-    const filtered = recipes.filter((block) => {
-      const first = block.trim().split("\n")[0];
-      if (/^Top-3 candidate pairs/i.test(first)) return false;
-      if (first === "---") return false;
-      return true;
-    });
+                {(() => {
+                  // 1) filter out unwanted cards
+                  const filtered = recipes.filter((block) => {
+                    const first = block.trim().split("\n")[0];
+                    if (/^Top-3 candidate pairs/i.test(first)) return false;
+                    if (first === "---") return false;
+                    return true;
+                  });
 
-    // 2) group blocks by '---' delimiter from the ORIGINAL array
-    const groups: string[][] = [];
-    let cur: string[] = [];
-    for (const block of recipes) {
-      const head = block.trim().split("\n")[0];
-      if (/^Top-3 candidate pairs/i.test(head)) continue; // skip
-      if (head === "---") {
-        if (cur.length) groups.push(cur), (cur = []);
-        continue;
-      }
-      cur.push(block.trim());
-    }
-    if (cur.length) groups.push(cur);
+                  // 2) group blocks by '---' delimiter from the ORIGINAL array
+                  const groups: string[][] = [];
+                  let cur: string[] = [];
+                  for (const block of recipes) {
+                    const head = block.trim().split("\n")[0];
+                    if (/^Top-3 candidate pairs/i.test(head)) continue; // skip
+                    if (head === "---") {
+                      if (cur.length) groups.push(cur), (cur = []);
+                      continue;
+                    }
+                    cur.push(block.trim());
+                  }
+                  if (cur.length) groups.push(cur);
 
-    // 3) render one card per group, joining blocks
-    return groups.map((group, idx) => {
-      const title =
-        group[0]?.split("\n")[0].replace(/^[*"\s]+|[*"\s]+$/g, "") ||
-        `Recipe ${idx + 1}`;
+                  // 3) render one card per group, joining blocks
+                  return groups.map((group, idx) => {
+                    const title =
+                      group[0]
+                        ?.split("\n")[0]
+                        .replace(/^[*"\s]+|[*"\s]+$/g, "") ||
+                      `Recipe ${idx + 1}`;
 
-      // join blocks with a blank line; optionally remove duplicated headings
-      const body = group
-        .join("\n\n")
-        .replace(/^(Ingredients: .+)\n\1/m, "$1") // collapse duplicate Ingredients line
-        .replace(/^(Instructions:)\n\1/m, "$1");  // collapse duplicate Instructions line
+                    // join blocks with a blank line; optionally remove duplicated headings
+                    const body = group
+                      .join("\n\n")
+                      .replace(/^(Ingredients: .+)\n\1/m, "$1") // collapse duplicate Ingredients line
+                      .replace(/^(Instructions:)\n\1/m, "$1"); // collapse duplicate Instructions line
 
-      return (
-        <article key={idx} className="rounded-2xl border p-4">
-          <h3 className="font-semibold mb-1">{title}</h3>
-          <p className="text-sm whitespace-pre-wrap text-slate-700">{body}</p>
-        </article>
-      );
-    });
-  })()}
-</div>
-
+                    return (
+                      <article key={idx} className="rounded-2xl border p-4">
+                        <h3 className="font-semibold mb-1">{title}</h3>
+                        <p className="text-sm whitespace-pre-wrap text-slate-700">
+                          {body}
+                        </p>
+                      </article>
+                    );
+                  });
+                })()}
+              </div>
             )}
           </div>
         </section>
