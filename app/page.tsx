@@ -113,7 +113,7 @@ export default function Home() {
             <h2 className="text-lg font-semibold mb-2">About to Expire...</h2>
             {pairs.length === 0 ? (
               <p className="text-sm text-slate-600">
-                Click <b>Compute Pairs & Recipes</b> to run your Python file.
+                Click <b>Compute Pairs & Recipes</b> to find pairs about to expire.
               </p>
             ) : (
               <div className="grid grid-cols-1 gap-2">
@@ -136,8 +136,7 @@ export default function Home() {
             <h2 className="text-lg font-semibold mb-2">Recipes</h2>
             {recipes.length === 0 ? (
               <p className="text-sm text-slate-600">
-                After running, recipe ideas from the Python LLM call appear
-                here.
+                 Click <b>Compute Pairs & Recipes</b> to generate recipe ideas.
               </p>
             ) : (
               <div className="grid gap-3">

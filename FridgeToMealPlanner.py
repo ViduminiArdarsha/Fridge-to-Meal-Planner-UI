@@ -113,7 +113,7 @@ Steps:
 
     example:
 
-    *"Gotukola Sambola"*
+    "Gotukola Sambola"
 
     Indredients : Gotukola, Onions, Scraped Coconut, Salt, Tomato, Chilli and Lime extract
 
@@ -126,12 +126,15 @@ Steps:
     6. Put the sliced onion, Tomato, green chillies and scraped coconut in to a ball and mix it.
     7. Add a pinch of salt.
     8. Add some lime extract.
+    ---
 
 End Goal:
 You should deliver simple Sri Lankan style meal recipe ideas by utilizing the ingredients given.
 
 Narrow:
 1. Do not provide complex instructions.
+2. Do not use * or ** in the response.
+
 """
 
 response = client.responses.create(
