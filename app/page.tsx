@@ -21,44 +21,61 @@ export default function Home() {
   const [recipes, setRecipes] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  // Add-item form state
-  const [form, setForm] = useState<Item>({
-    item: "",
-    category: "Protein",
-    flavour_tags: "",
-    days_left: 3,
-    expiry_limit: 30,
-  });
+  // --- NEW: reusable loader with proper error handling ---
+  async function loadItems() {
+    try {
+      setError(null);
+      const res = await fetch("/api/items", { cache: "no-store" });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.detail || data?.error || "Failed to load items");
+      }
+      setItems(Array.isArray(data.items) ? data.items : []);
+    } catch (e: any) {
+      setError(e?.message || "Failed to load items");
+      setItems([]);
+    }
+  }
 
   // Load CSV rows on mount
   useEffect(() => {
-    (async () => {
-      const res = await fetch("/api/items", { cache: "no-store" });
-      const data = await res.json();
-      setItems(data.items || []);
-    })();
+    loadItems();
   }, []);
 
-  // Run Python, capture stdout, parse pairs + recipes
+  // Run Python (FastAPI), parse pairs + recipes
   async function computeRecipes() {
     setLoading(true);
     setError(null);
-    const res = await fetch("/api/run", { method: "POST" });
-    const data = await res.json();
-    setLoading(false);
-    if (!res.ok) return setError(data.error || "Python run failed.");
-    setPairs(data.pairs || []);
-    setRecipes(data.recipes || [data.raw || ""]);
+    try {
+      const res = await fetch("/api/run", { method: "POST", cache: "no-store" });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.detail || data?.error || "Python run failed.");
+      }
+      setPairs(Array.isArray(data.pairs) ? data.pairs : []);
+      // Backend returns: { recipes: string[], raw: string }
+      const got = Array.isArray(data.recipes) && data.recipes.length > 0
+        ? data.recipes
+        : (data.raw ? [data.raw] : []);
+      setRecipes(got);
+    } catch (e: any) {
+      setError(e?.message || "Python run failed.");
+      setPairs([]);
+      setRecipes([]);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900">
+    <main className="min-h-screen text-slate-900">
       {/* Header */}
       <header className="sticky top-0 z-10 bg-white border-b px-6 py-4 flex items-center justify-between">
         <h1 className="text-xl font-semibold">Fridge-to-Meal Planner</h1>
         <div className="flex gap-2">
           <button
             onClick={computeRecipes}
+            aria-busy={loading}
             className="px-3 py-1.5 rounded-xl bg-slate-900 text-white text-sm"
           >
             {loading ? "Running..." : "Compute Pairs & Recipes"}
@@ -66,11 +83,26 @@ export default function Home() {
         </div>
       </header>
 
+      <div className="col-span-12 flex items-center gap-2 mt-3 p-5">
+        <AddItemForm />
+        {error && <span className="text-red-600 text-sm">{error}</span>}
+      </div>
+
       <div className="grid grid-cols-12 gap-4 p-4">
         {/* Left: Inventory + Add Item */}
         <section className="col-span-12 lg:col-span-7 space-y-4">
           <div className="bg-white rounded-2xl shadow p-4">
-            <h2 className="text-lg font-semibold mb-3">Inventory</h2>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold">Inventory</h2>
+              <button
+                onClick={loadItems}
+                className="text-sm text-slate-600 underline underline-offset-2"
+                title="Reload items from CSV"
+              >
+                Reload
+              </button>
+            </div>
+
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -94,17 +126,20 @@ export default function Home() {
                       <td className="py-2 pr-4">{r.expiry_limit}</td>
                     </tr>
                   ))}
+                  {items.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="py-4 text-slate-500">
+                        No items found. Add something and click <i>Reload</i>.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
 
           {/* Add Item */}
-
-          <div className="col-span-12 flex items-center gap-2">
-            <AddItemForm />
-            {error && <span className="text-red-600 text-sm">{error}</span>}
-          </div>
+          {/* (AddItemForm lives above the grid; keep or move as you like) */}
         </section>
 
         {/* Right: Pairs + Recipe Cards */}
@@ -136,7 +171,7 @@ export default function Home() {
             <h2 className="text-lg font-semibold mb-2">Recipes</h2>
             {recipes.length === 0 ? (
               <p className="text-sm text-slate-600">
-                 Click <b>Compute Pairs & Recipes</b> to generate recipe ideas.
+                Click <b>Compute Pairs & Recipes</b> to generate recipe ideas.
               </p>
             ) : (
               <div className="grid gap-3">
@@ -171,11 +206,10 @@ export default function Home() {
                         .replace(/^[*"\s]+|[*"\s]+$/g, "") ||
                       `Recipe ${idx + 1}`;
 
-                    // join blocks with a blank line; optionally remove duplicated headings
                     const body = group
                       .join("\n\n")
-                      .replace(/^(Ingredients: .+)\n\1/m, "$1") // collapse duplicate Ingredients line
-                      .replace(/^(Instructions:)\n\1/m, "$1"); // collapse duplicate Instructions line
+                      .replace(/^(Ingredients: .+)\n\1/m, "$1")
+                      .replace(/^(Instructions:)\n\1/m, "$1");
 
                     return (
                       <article key={idx} className="rounded-2xl border p-4">
@@ -195,3 +229,4 @@ export default function Home() {
     </main>
   );
 }
+
