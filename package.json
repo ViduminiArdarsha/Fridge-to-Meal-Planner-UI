@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@radix-ui/react-form": "^0.1.8",
+    "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/themes": "^3.2.1",
     "next": "15.4.6",
     "react": "19.1.0",

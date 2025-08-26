@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
-import { Montserrat } from "next/font/google";
+import { Montserrat , Edu_NSW_ACT_Cursive} from "next/font/google";
 import "./globals.css";
 import { Theme } from "@radix-ui/themes";
 
 const montserrat = Montserrat({
   variable: "--font-monteserrat",
+  subsets: ["latin"],
+});
+
+const eduCursive = Edu_NSW_ACT_Cursive({
+  variable: "--font-eduCursive",
   subsets: ["latin"],
 });
 
@@ -20,7 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={montserrat.className}>
+      <body className={ `${montserrat.className , eduCursive.variable}`}>
         <Theme>
           <main className="p-5">{children}</main>
         </Theme>

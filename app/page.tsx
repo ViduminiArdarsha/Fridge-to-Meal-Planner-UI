@@ -1,14 +1,24 @@
 "use client";
 import { useEffect, useState } from "react";
 import AddItemForm from "./components/AddItemForm";
+import {
+  Badge,
+  Button,
+  Callout,
+  Card,
+  Flex,
+  Grid,
+  Heading,
+  Text,
+} from "@radix-ui/themes";
 
 // ---------- Types ----------
 type Item = {
   item: string;
   category: string;
-  flavour_tags: string; // semicolon-separated
-  days_left: number;
-  expiry_limit: number;
+  flavourTags: string; // semicolon-separated
+  daysLeft: number;
+  expiryLimit: number;
 };
 
 type Pair = { a: string; b: string; weight: number };
@@ -47,16 +57,22 @@ export default function Home() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/run", { method: "POST", cache: "no-store" });
+      const res = await fetch("/api/run", {
+        method: "POST",
+        cache: "no-store",
+      });
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data?.detail || data?.error || "Python run failed.");
       }
       setPairs(Array.isArray(data.pairs) ? data.pairs : []);
       // Backend returns: { recipes: string[], raw: string }
-      const got = Array.isArray(data.recipes) && data.recipes.length > 0
-        ? data.recipes
-        : (data.raw ? [data.raw] : []);
+      const got =
+        Array.isArray(data.recipes) && data.recipes.length > 0
+          ? data.recipes
+          : data.raw
+          ? [data.raw]
+          : [];
       setRecipes(got);
     } catch (e: any) {
       setError(e?.message || "Python run failed.");
@@ -68,18 +84,21 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen text-slate-900">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-white border-b px-6 py-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Fridge-to-Meal Planner</h1>
+    <main className="">
+      <header className="sticky top-0 z-10 bg-white px-6 py-4 flex justify-between border-b">
+        <h1 className="font-eduCursive text-2xl font-semibold text-gray-800">
+          Fridge-to-Meal Planner
+        </h1>
         <div className="flex gap-2">
-          <button
+          <Button
+            radius="full"
+            size="3"
+            color="green"
             onClick={computeRecipes}
             aria-busy={loading}
-            className="px-3 py-1.5 rounded-xl bg-slate-900 text-white text-sm"
           >
             {loading ? "Running..." : "Compute Pairs & Recipes"}
-          </button>
+          </Button>
         </div>
       </header>
 
@@ -89,7 +108,6 @@ export default function Home() {
       </div>
 
       <div className="grid grid-cols-12 gap-4 p-4">
-        {/* Left: Inventory + Add Item */}
         <section className="col-span-12 lg:col-span-7 space-y-4">
           <div className="bg-white rounded-2xl shadow p-4">
             <div className="flex items-center justify-between mb-3">
@@ -120,10 +138,10 @@ export default function Home() {
                       <td className="py-2 pr-4">{r.item}</td>
                       <td className="py-2 pr-4">{r.category}</td>
                       <td className="py-2 pr-4 text-slate-600">
-                        {r.flavour_tags}
+                        {r.flavourTags}
                       </td>
-                      <td className="py-2 pr-4">{r.days_left}</td>
-                      <td className="py-2 pr-4">{r.expiry_limit}</td>
+                      <td className="py-2 pr-4">{r.daysLeft}</td>
+                      <td className="py-2 pr-4">{r.expiryLimit}</td>
                     </tr>
                   ))}
                   {items.length === 0 && (
@@ -144,28 +162,50 @@ export default function Home() {
 
         {/* Right: Pairs + Recipe Cards */}
         <section className="col-span-12 lg:col-span-5 space-y-4">
-          <div className="bg-white rounded-2xl shadow p-4">
-            <h2 className="text-lg font-semibold mb-2">About to Expire...</h2>
+          <Card variant="classic">
+            <Flex align="center" justify="between" mb="2">
+              <Heading size="3">About to Expire...</Heading>
+            </Flex>
+
             {pairs.length === 0 ? (
-              <p className="text-sm text-slate-600">
-                Click <b>Compute Pairs & Recipes</b> to find pairs about to expire.
-              </p>
+              <Text color="gray">
+                Click <b>Compute Pairs & Recipes</b> to find pairs about to
+                expire.
+              </Text>
             ) : (
-              <div className="grid grid-cols-1 gap-2">
-                {pairs.map((p, i) => (
-                  <div
-                    key={i}
-                    className="border rounded-xl p-3 flex items-center justify-between"
-                  >
-                    <div className="font-medium">
-                      {p.a} — {p.b}
-                    </div>
-                    <div className="text-sm font-mono">w={p.weight}</div>
-                  </div>
-                ))}
-              </div>
+              <Grid columns={{ initial: "1" }} gap="3">
+                {pairs.map((p, i) => {
+                  const color =
+                    i === 0
+                      ? "red"
+                      : i === 1
+                      ? "yellow"
+                      : i === 2
+                      ? "blue"
+                      : "gray";
+
+                  return (
+                    <Callout.Root
+                      color= {`${color}`}
+                      key={`${p.a}-${p.b}-${i}`}
+                      variant="surface"
+                    >
+                      
+                        <Flex align="center" justify="between" gapX="5">
+                          <Text weight="medium">
+                            {p.a} — {p.b}
+                          </Text>
+                          <Text size="1" className="font-mono" >
+                            w={p.weight}
+                          </Text>
+                        </Flex>
+                      
+                    </Callout.Root>
+                  );
+                })}
+              </Grid>
             )}
-          </div>
+          </Card>
 
           <div className="bg-white rounded-2xl shadow p-4">
             <h2 className="text-lg font-semibold mb-2">Recipes</h2>
@@ -229,4 +269,3 @@ export default function Home() {
     </main>
   );
 }
-
