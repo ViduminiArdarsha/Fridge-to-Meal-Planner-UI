@@ -37,7 +37,7 @@ def loadFridge(path):
             name = r["item"].strip().title()
             fridge[name] = {
                 "category"   : r["category"].strip().title(),
-                "flavours"   : {t.strip().lower() for t in r["flavouragTags"].split(";") if t.strip()},
+                "flavours"   : {t.strip().lower() for t in r["flavourTags"].split(";") if t.strip()},
                 "daysLeft"   : int(r["daysLeft"]),
                 "expiryLimit": int(r["expiryLimit"])
             }
