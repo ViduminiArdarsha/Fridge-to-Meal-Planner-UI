@@ -1,4 +1,4 @@
-import { Flex, Grid, Select, Text, TextField } from "@radix-ui/themes";
+import { Flex, Grid, Heading, Select, Text, TextField } from "@radix-ui/themes";
 import { useState } from "react";
 import AddItemBtn, { Item } from "./AddItemBtn";
 
@@ -14,11 +14,13 @@ const AddItemForm = () => {
   const [error, setError] = useState<string | null>(null);
 
   return (
-    <div className="bg-white rounded-2xl shadow p-4 w-max">
-      <h3 className="font-semibold mb-3">Add Item</h3>
+    <div className="bg-white rounded-2xl shadow p-8 w-full">
+      <Heading as="h6">
+        Add Item
+      </Heading>
 
       <form>
-        <Grid columns={{ initial: "1", md: "5" }} gap="3">
+        <Grid columns={{ initial: "1", md: "5" }} gap="3" mt="3" gapY="5">
           <Flex direction="column">
             <Text>Item Name</Text>
             <TextField.Root
@@ -64,7 +66,6 @@ const AddItemForm = () => {
           <Flex direction="column">
             <Text>Days Left for Expiry</Text>
             <TextField.Root
-             
               value={form.daysLeft}
               min={0}
               onChange={(e) =>
@@ -77,7 +78,6 @@ const AddItemForm = () => {
           <Flex direction="column">
             <Text>Expiry Limit</Text>
             <TextField.Root
-              
               value={form.expiryLimit}
               min={1}
               onChange={(e) =>
@@ -87,17 +87,17 @@ const AddItemForm = () => {
             />
           </Flex>
         </Grid>
-      </form>
 
-      <div className="mt-3">
-        <AddItemBtn
-          form={form}
-          setForm={setForm}
-          setItems={setItems}
-          setError={setError}
-        />
-      </div>
-      {error && <p className="text-red-600 mt-2">{error}</p>}
+        <div className="mt-3">
+          <AddItemBtn
+            form={form}
+            setForm={setForm}
+            setItems={setItems}
+            setError={setError}
+          />
+        </div>
+        {error && <p className="text-red-600 mt-2">{error}</p>}
+      </form>
     </div>
   );
 };

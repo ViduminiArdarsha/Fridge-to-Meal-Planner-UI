@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation"; // ⬅️ add this
 export type Item = {
   item: string;
   category: string;
-  flavour_tags: string;
-  days_left: number;
-  expiry_limit: number;
+  flavourTags: string;
+  daysLeft: number;
+  expiryLimit: number;
 };
 
 type Props = {
@@ -54,7 +54,7 @@ const AddItemBtn = ({ form, setForm, setItems, setError }: Props) => {
   };
 
   return (
-    <Button onClick={addItem} color="cyan" disabled={loading}>
+    <Button onClick={addItem} color="green" size="2" disabled={loading}>
       {loading ? "Adding…" : "Add Item"}
     </Button>
   );
