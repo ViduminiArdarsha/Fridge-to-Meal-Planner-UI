@@ -1,14 +1,7 @@
 import { Button } from "@radix-ui/themes";
 import React, { useState } from "react";
-import { useRouter } from "next/navigation"; // ⬅️ add this
-
-export type Item = {
-  item: string;
-  category: string;
-  flavourTags: string;
-  daysLeft: number;
-  expiryLimit: number;
-};
+import { useRouter } from "next/navigation";
+import { Item } from "./Inventory";
 
 type Props = {
   form: Item;

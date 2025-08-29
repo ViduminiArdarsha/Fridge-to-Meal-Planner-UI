@@ -1,6 +1,8 @@
-import { Flex, Grid, Heading, Select, Text, TextField } from "@radix-ui/themes";
+import { Box, Flex, Grid, Heading, Select, Text, TextField } from "@radix-ui/themes";
 import { useState } from "react";
-import AddItemBtn, { Item } from "./AddItemBtn";
+import AddItemBtn from "./AddItemBtn";
+import { Item } from "./Inventory";
+
 
 const AddItemForm = () => {
   const [form, setForm] = useState<Item>({
@@ -14,8 +16,8 @@ const AddItemForm = () => {
   const [error, setError] = useState<string | null>(null);
 
   return (
-    <div className="bg-white rounded-2xl shadow p-8 w-full">
-      <Heading as="h6">
+    <Box className="bg-white rounded-2xl shadow p-6 mt-4">
+      <Heading size="5">
         Add Item
       </Heading>
 
@@ -88,17 +90,17 @@ const AddItemForm = () => {
           </Flex>
         </Grid>
 
-        <div className="mt-3">
+        <Box className="mt-3">
           <AddItemBtn
             form={form}
             setForm={setForm}
             setItems={setItems}
             setError={setError}
           />
-        </div>
+        </Box>
         {error && <p className="text-red-600 mt-2">{error}</p>}
       </form>
-    </div>
+    </Box>
   );
 };
 

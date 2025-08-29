@@ -34,18 +34,11 @@ const Inventory = () => {
   }, []);
 
   return (
-    <Box
-      pt="4"
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(12, minmax(0, 1fr))",
-        gap: "1rem",
-      }}
-    >
-      <Box className="col-span-12 lg:col-span-7">
-        <Card variant="classic" className="rounded-2xl shadow">
+    
+      <Box className="col-span-6 lg:col-span-7">
+        <Box className="bg-white rounded-2xl shadow p-6">
           <Flex align="center" justify="between" mb="3">
-            <Heading size="4">Inventory</Heading>
+            <Heading size="5">Inventory</Heading>
           </Flex>
 
           <Box className="overflow-x-auto">
@@ -85,9 +78,9 @@ const Inventory = () => {
               </Table.Body>
             </Table.Root>
           </Box>
-        </Card>
+        </Box>
       </Box>
-    </Box>
+    
   );
 };
 
